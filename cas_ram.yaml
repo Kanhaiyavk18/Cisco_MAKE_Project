@@ -1,0 +1,25 @@
+server:
+  - !channel
+    port: 50052
+    insecure-mode: true
+
+instances:
+  - name: buildgrid
+
+    storages:
+      - !lru-storage &main-storage
+        size: 2048M
+
+    services:
+      - !action-cache &main-action
+        storage: *main-storage
+        max-cached-refs: 256
+        allow-updates: true
+
+      - !cas
+        storage: *main-storage
+
+      - !bytestream
+        storage: *main-storage
+
+thread-pool-size: 1000

@@ -1,0 +1,42 @@
+server:
+  - !channel
+    port: 50051
+    insecure-mode: true
+
+description: >
+  BuildGrid Execution service configuration
+
+authorization:
+  method: none
+
+instances:
+  - name: buildgrid
+    description: |
+      The `buildgrid` BuildGrid instance.
+
+    storages:
+      - !remote-storage &remote-cas
+        url: http://localhost:50052
+        instance-name: buildgrid
+
+    caches:
+      - !remote-action-cache &remote-cache
+        url: http://localhost:50052
+        instance-name: buildgrid
+
+    logstream-storage:
+      - !memory-logstream-storage &logstream-storage
+
+    services:
+      - !execution
+        storage: *remote-cas
+        action-cache: *remote-cache
+
+      - !logstream
+        stream-storage: *logstream-storage
+        prefix: buildgrid
+
+      - !bytestream
+        stream-storage: *logstream-storage
+
+thread-pool-size: 1000

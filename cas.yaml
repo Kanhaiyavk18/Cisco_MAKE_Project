@@ -1,0 +1,35 @@
+server:
+  - !channel
+    address: localhost:50052
+    insecure-mode: true
+
+instances:
+  - name: buildgrid
+
+    storages:
+      - !disk-storage &main-storage
+
+      - !lru-storage &in-mem-storage
+        size: 1G
+
+      - !with-cache-storage &cached-storage
+        cache: *in-mem-storage
+        fallback: *main-storage
+
+      - !sql-index &cas-storage
+        storage: *cached-storage
+        connection-string: postgresql://postgres:admin@127.0.0.1/postgres
+
+    services:
+      - !action-cache &main-action
+        storage: *main-storage
+        max-cached-refs: 256
+        allow-updates: true
+
+      - !cas
+        storage: *cas-storage
+
+      - !bytestream
+        storage: *cas-storage
+
+thread-pool-size: 1000
